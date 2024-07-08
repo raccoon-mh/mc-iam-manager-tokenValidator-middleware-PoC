@@ -1,28 +1,27 @@
 
 # Echo JWT Authentication Example
 
-This project demonstrates a simple Echo server with JWT authentication using the `iamtokenvalidator` library.
+This project demonstrates a simple Echo server with JWT authentication using the `iamtokenvalidatorpoc` library.
 
 ## Prerequisites
 
 - Go (version 1.15+)
 - Echo framework (version 4)
-- (`iamtokenvalidator` library)[https://pkg.go.dev/github.com/m-cmp/mc-iam-manager/iamtokenvalidator]
-
+- (`iamtokenvalidatorpoc` library)[https://pkg.go.dev/github.com/raccoon-mh/iamtokenvalidatorpoc]
 
 
 ## Installation
 
 1. Clone the repository:
     ```sh
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone https://github.com/raccoon-mh/mc-iam-manager-tokenValidator-middleware-PoC
+    cd mc-iam-manager-tokenValidator-middleware-PoC
     ```
 
 2. Install dependencies:
     ```sh
     go get github.com/labstack/echo/v4
-    go get github.com/m-cmp/mc-iam-manager/iamtokenvalidator
+    go get github.com/raccoon-mh/iamtokenvalidatorpoc@v0.1.1
     ```
 
 ## Configuration
@@ -30,7 +29,7 @@ This project demonstrates a simple Echo server with JWT authentication using the
 Ensure that the MC-IAM-MANAGER's public key endpoint is correctly configured in the `init` function:
 ```go
 func init() {
-    err := iamtokenvalidator.GetPubkeyIamManager("https://example.com:5000/api/auth/certs")
+    err := iamtokenvalidatorpoc.GetPubkeyIamManager("https://example.com:5000/api/auth/certs")
     if err != nil {
         panic(err.Error())
     }
@@ -58,7 +57,7 @@ func init() {
 
 ### JWT Validation
 
-The JWT token is validated using the `iamtokenvalidator` library. The token should be included in the `Authorization` header as a Bearer token.
+The JWT token is validated using the `iamtokenvalidatorpoc` library. The token should be included in the `Authorization` header as a Bearer token.
 
 ## Example
 
