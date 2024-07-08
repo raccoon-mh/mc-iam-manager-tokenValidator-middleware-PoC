@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/m-cmp/mc-iam-manager/iamtokenvalidator"
+	iamtokenvalidator "github.com/raccoon-mh/iamtokenvalidatorpoc"
 )
 
 func init() {
