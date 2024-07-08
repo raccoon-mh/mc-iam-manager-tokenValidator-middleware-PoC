@@ -6,7 +6,7 @@ toolchain go1.22.5
 
 require (
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/raccoon-mh/iamtokenvalidatorpoc v0.1.0
+	github.com/m-cmp/mc-iam-manager/iamtokenvalidator v0.0.0-20240708013132-fd7cbe43c388
 )
 
 require (

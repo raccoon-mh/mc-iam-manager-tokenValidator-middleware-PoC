@@ -6,11 +6,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/raccoon-mh/iamtokenvalidatorpoc"
+	"github.com/m-cmp/mc-iam-manager/iamtokenvalidator"
 )
 
 func init() {
-	err := iamtokenvalidatorpoc.GetPubkeyIamManager("https://example.com:5000/api/auth/certs") // mc-iam-manager certs endpoint is require, this endpoint is v0.2.0..
+	err := iamtokenvalidator.GetPubkeyIamManager("https://example.com:5000/api/auth/certs") // mc-iam-manager certs endpoint is require, this endpoint is v0.2.0..
 	if err != nil {
 		panic(err.Error())
 	}
@@ -28,7 +28,7 @@ func main() {
 	protectedPath.Use(setUserRole)
 	protectedPath.Any("/", func(c echo.Context) error {
 		roles := strings.Join(c.Get("realmAccess").([]string), ", ")
-		return c.String(http.StatusOK, "Hello, World! Protected. your roles is :"+roles)
+		return c.String(http.StatusOK, "Hello, World! Protected. your roles is : "+roles)
 	})
 
 	e.Logger.Fatal(e.Start(":1323"))
@@ -37,7 +37,7 @@ func main() {
 func isTokenValid(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		accesstoken := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
-		err := iamtokenvalidatorpoc.IsTokenValid(accesstoken)
+		err := iamtokenvalidator.IsTokenValid(accesstoken)
 		if err != nil {
 			return c.String(http.StatusUnauthorized, "Authorization is not valid..")
 		}
@@ -49,7 +49,7 @@ func isTokenValid(next echo.HandlerFunc) echo.HandlerFunc {
 func setUserRole(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		accesstoken := c.Get("accesstoken").(string)
-		claims, err := iamtokenvalidatorpoc.GetTokenClaimsByIamManagerClaims(accesstoken)
+		claims, err := iamtokenvalidator.GetTokenClaimsByIamManagerClaims(accesstoken)
 		if err != nil {
 			return c.String(http.StatusUnauthorized, "Authorization is not valid..")
 		}
