@@ -52,8 +52,16 @@ func init() {
 
 ### Middleware
 
-- `isTokenValid`: Validates the JWT token.
-- `setUserRole`: Extracts and sets user roles from the token.
+```go
+	protectedPath.Use(echojwt.WithConfig(echojwt.Config{
+		KeyFunc:        iamtokenvalidator.Keyfunction,
+		SuccessHandler: setRolesInContext,
+	}))
+```
+- Use [echo jwt](https://echo.labstack.com/docs/cookbook/jwt) to validate token.
+  
+- `setRolesInContext`: Extracts and sets user roles from the token.
+- `SetGrantedRolesMiddleware`: Reject or approve input arrays and user roles by comparing them to each other.
 
 ### JWT Validation
 
