@@ -1,12 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
-
 	iamtokenvalidator "github.com/raccoon-mh/iamtokenvalidatorpoc"
+
+	"github.com/golang-jwt/jwt/v4"
+	echojwt "github.com/labstack/echo-jwt"
+	"github.com/labstack/echo/v4"
 )
 
 func init() {
@@ -24,36 +27,53 @@ func main() {
 	})
 
 	protectedPath := e.Group("/protected")
-	protectedPath.Use(isTokenValid)
-	protectedPath.Use(setUserRole)
-	protectedPath.Any("/", func(c echo.Context) error {
-		roles := strings.Join(c.Get("realmAccess").([]string), ", ")
-		return c.String(http.StatusOK, "Hello, World! Protected. your roles is : "+roles)
+	protectedPath.Use(echojwt.WithConfig(echojwt.Config{
+		KeyFunc:        iamtokenvalidator.Keyfunction,
+		SuccessHandler: setRolesInContext,
+	}))
+
+	// token 이 valid 할 경우
+	protectedPath.Any("", func(c echo.Context) error {
+		roles := strings.Join(c.Get("roles").([]string), ", ")
+		userId := c.Get("userId")
+		msg := fmt.Sprintf("Hello, %s! Protected. roles : %s", userId, roles)
+		return c.String(http.StatusOK, msg)
 	})
+
+	// token 이 valid 할 경우 && admin 역할을 강제하는 경우
+	protectedPath.Any("/admin", SetGrantedRolesMiddleware([]string{"admin"})(func(c echo.Context) error {
+		roles := strings.Join(c.Get("roles").([]string), ", ")
+		userId := c.Get("userId")
+		msg := fmt.Sprintf("Hello, %s Admin! Protected. roles : %s", userId, roles)
+		return c.String(http.StatusOK, msg)
+	}))
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
-func isTokenValid(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		accesstoken := strings.TrimPrefix(c.Request().Header.Get("Authorization"), "Bearer ")
-		err := iamtokenvalidator.IsTokenValid(accesstoken)
-		if err != nil {
-			return c.String(http.StatusUnauthorized, "Authorization is not valid..")
-		}
-		c.Set("accesstoken", accesstoken)
-		return next(c)
-	}
+func setRolesInContext(c echo.Context) {
+	accesstoken := c.Get("user").(*jwt.Token).Raw
+	claims, _ := iamtokenvalidator.GetTokenClaimsByIamManagerClaims(accesstoken)
+	c.Set("userId", claims.UserId)
+	c.Set("userName", claims.UserName)
+	c.Set("preferredUsername", claims.PreferredUsername)
+	c.Set("roles", claims.RealmAccess.Roles)
 }
 
-func setUserRole(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		accesstoken := c.Get("accesstoken").(string)
-		claims, err := iamtokenvalidator.GetTokenClaimsByIamManagerClaims(accesstoken)
-		if err != nil {
-			return c.String(http.StatusUnauthorized, "Authorization is not valid..")
+func SetGrantedRolesMiddleware(roles []string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			userRolesArr := c.Get("roles").([]string)
+			userRolesArrSet := make(map[string]struct{}, len(userRolesArr))
+			for _, v := range userRolesArr {
+				userRolesArrSet[v] = struct{}{}
+			}
+			for _, v := range roles {
+				if _, found := userRolesArrSet[v]; found {
+					return next(c)
+				}
+			}
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 		}
-		c.Set("realmAccess", claims.RealmAccess.Roles)
-		return next(c)
 	}
 }
