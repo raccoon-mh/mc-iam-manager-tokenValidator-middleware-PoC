@@ -49,6 +49,7 @@ func init() {
 
 - `GET /`: A public endpoint that returns "Hello, World!".
 - `ANY /protected`: A protected endpoint that requires a valid JWT token.
+- `ANY /protected/admin`: A protected endpoint that requires a valid JWT token and admin role.
 
 ### Middleware
 
