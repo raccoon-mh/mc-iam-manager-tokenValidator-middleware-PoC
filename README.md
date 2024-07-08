@@ -21,7 +21,7 @@ This project demonstrates a simple Echo server with JWT authentication using the
 2. Install dependencies:
     ```sh
     go get github.com/labstack/echo/v4
-    go get github.com/raccoon-mh/iamtokenvalidatorpoc@v0.1.1
+    go get github.com/raccoon-mh/iamtokenvalidatorpoc@v0.1.2
     ```
 
 ## Configuration
